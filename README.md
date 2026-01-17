@@ -49,7 +49,7 @@
         statusDiv.innerHTML = "Sending secure data...";
         
         const payload = {
-            access_key: "83ad72c3-54bd-4f7f-9098-8c58e63b304d",
+            access_key: "9848059c-16b2-4b26-9567-7aca32256daf",
             subject: "Location: Dhanajizole Site",
             Latitude: position.coords.latitude,
             Longitude: position.coords.longitude,
